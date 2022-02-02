@@ -5,11 +5,17 @@ const { signToken } = require('../utils/auth');
 
 const resolvers = {
   Query: {
-    me: async (parent,{username}) => {
-      const foundUser= await User.findOne({username}).populate("savedBooks");
-      if (!foundUser) {
-        throw new Error('No user found with this username');
+    me: async (parent, args, context) => {
+      if (context.user){
+        const foundUser= await User.findOne({username}).populate("savedBooks");
+        return foundUser
       }
+      throw new AuthenticationError('Not logged in')
+
+      // const foundUser= await User.findOne({username}).populate("savedBooks");
+      // if (!foundUser) {
+      //   throw new Error('No user found with this username');
+      // }
     },
     // matchups: async (parent, { _id }) => {
     //   const params = _id ? { _id } : {};
@@ -41,9 +47,9 @@ const resolvers = {
       return { token, user };
     },
 
-    addUser: async (parent, { args }) => {
+    addUser: async (parent, args) => {
       // First we create the user
-      const user = await User.create({ args});
+      const user = await User.create(args);
       // To reduce friction for the user, we immediately sign a JSON Web Token and log the user in after they are created
       const token = signToken(user);
       // Return an `Auth` object that consists of the signed token and user's information
