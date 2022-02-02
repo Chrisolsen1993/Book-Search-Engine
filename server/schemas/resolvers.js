@@ -7,7 +7,8 @@ const resolvers = {
   Query: {
     me: async (parent, args, context) => {
       if (context.user){
-        const foundUser= await User.findOne({username}).populate("savedBooks");
+        const foundUser= await User.findOne({_id: context.user._id})
+        .select('-__v -password')
         return foundUser
       }
       throw new AuthenticationError('Not logged in')
